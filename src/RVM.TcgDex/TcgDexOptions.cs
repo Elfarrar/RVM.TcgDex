@@ -15,6 +15,12 @@ public sealed class TcgDexOptions
     /// <summary>Language of the returned data. English by default, as in the official SDKs.</summary>
     public Language Language { get; set; } = Language.En;
 
+    /// <summary>Default time a response stays cached: one hour, as in the official SDKs.</summary>
+    public static readonly TimeSpan DefaultCacheTtl = TimeSpan.FromHours(1);
+
+    /// <summary>How long a response stays cached. <see cref="TimeSpan.Zero"/> turns the cache off.</summary>
+    public TimeSpan CacheTtl { get; set; } = DefaultCacheTtl;
+
     /// <summary>
     /// Base address every request is relative to: <c>{Endpoint}/{language code}/</c>. The trailing
     /// slash matters — without it, <see cref="Uri"/> drops the language segment when resolving
@@ -33,5 +39,5 @@ public sealed class TcgDexOptions
         }
     }
 
-    internal TcgDexOptions Clone() => new() { Endpoint = Endpoint, Language = Language };
+    internal TcgDexOptions Clone() => new() { Endpoint = Endpoint, Language = Language, CacheTtl = CacheTtl };
 }

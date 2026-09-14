@@ -3,9 +3,18 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
-  <!-- A biblioteca so pode depender de Microsoft.Extensions.* (11-sdk-rvm-tcgdex.md § Tecnico). -->
+  <!-- A biblioteca so pode depender de Microsoft.Extensions.* (11-sdk-rvm-tcgdex.md § Tecnico).
+       Linha 8.0.x de proposito: a menor que serve aos dois alvos; quem esta no .NET 10 resolve
+       para a versao dele (a maior vence) sem conflito. -->
+  <ItemGroup Label="Biblioteca">
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="8.0.2" />
+  </ItemGroup>
 
   <ItemGroup Label="Testes">
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="xunit" Version="2.9.3" />

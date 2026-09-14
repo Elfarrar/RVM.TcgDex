@@ -10,6 +10,9 @@ namespace RVM.TcgDex.Serialization;
 [JsonSerializable(typeof(List<CardResume>))]
 [JsonSerializable(typeof(List<SetResume>))]
 [JsonSerializable(typeof(List<SerieResume>))]
+[JsonSerializable(typeof(CatalogEntry))]
+[JsonSerializable(typeof(List<string>))]
+[JsonSerializable(typeof(List<int>))]
 [JsonSerializable(typeof(ProblemDetails))]
 internal sealed partial class TcgDexJsonContext : JsonSerializerContext;
 

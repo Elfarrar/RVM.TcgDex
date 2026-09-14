@@ -1,6 +1,44 @@
+using System.Globalization;
 using System.Text.Json.Serialization.Metadata;
+using RVM.TcgDex.Serialization;
 
 namespace RVM.TcgDex;
+
+/// <summary>
+/// A catalog of card attributes (types, rarities, HP values…): <c>ListAsync</c> the possible
+/// values, <c>GetAsync</c> the cards that have one. Same shape as the <c>SimpleEndpoint</c> of the
+/// official SDKs.
+/// </summary>
+/// <typeparam name="TValue"><see cref="string"/>, or <see cref="int"/> for HP, retreat cost and Pokédex ids.</typeparam>
+public sealed class CatalogEndpoint<TValue>
+    where TValue : notnull
+{
+    private readonly TCGdex _sdk;
+    private readonly string _path;
+    private readonly JsonTypeInfo<List<TValue>> _list;
+
+    internal CatalogEndpoint(TCGdex sdk, string path, JsonTypeInfo<List<TValue>> list)
+    {
+        _sdk = sdk;
+        _path = path;
+        _list = list;
+    }
+
+    /// <summary>Lists the possible values.</summary>
+    /// <exception cref="TcgDexException">The API failed or returned an unexpected body.</exception>
+    public async Task<IReadOnlyList<TValue>> ListAsync(Query? query = null, CancellationToken cancellationToken = default) =>
+        (await _sdk.FetchAsync([_path], query, _list, nullWhenNotFound: false, cancellationToken).ConfigureAwait(false))!;
+
+    /// <summary>Fetches the cards that have <paramref name="value"/>.</summary>
+    /// <returns>The entry — with no cards for an unknown value, which the API does not treat as not found.</returns>
+    /// <exception cref="TcgDexException">The API failed or returned an unexpected body.</exception>
+    public Task<CatalogEntry?> GetAsync(TValue value, CancellationToken cancellationToken = default)
+    {
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+        ArgumentException.ThrowIfNullOrWhiteSpace(text, nameof(value));
+        return _sdk.FetchAsync([_path, text], null, TcgDexJsonContext.Default.CatalogEntry, nullWhenNotFound: true, cancellationToken);
+    }
+}
 
 /// <summary>
 /// Cards, sets or series: <c>GetAsync</c> one by id, <c>ListAsync</c> the brief version of all of them.

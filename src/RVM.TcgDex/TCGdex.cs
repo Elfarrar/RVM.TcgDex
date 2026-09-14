@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using Microsoft.Extensions.Caching.Distributed;
+using RVM.TcgDex.Caching;
 using RVM.TcgDex.Serialization;
 using CardModel = RVM.TcgDex.Card;
 using SerieModel = RVM.TcgDex.Serie;
@@ -31,27 +33,53 @@ public sealed class TCGdex
 
     internal static readonly string UserAgent = BuildUserAgent();
 
+    // A shared IDistributedCache (Redis) holds other keys too: the prefix lets them be told apart and purged.
+    internal const string CacheKeyPrefix = "rvm-tcgdex:";
+
     private readonly HttpClient _http;
+    private readonly IDistributedCache _cache;
     private TcgDexOptions _options;
 
-    /// <summary>Client over a shared <see cref="HttpClient"/>, pointing at the public API.</summary>
+    /// <summary>Client over a shared <see cref="HttpClient"/>, pointing at the public API, with its own in-memory cache.</summary>
     public TCGdex(Language language = Language.En)
         : this(SharedHttpClient.Value, new TcgDexOptions { Language = language })
     {
     }
 
     /// <summary>Client over your own <see cref="HttpClient"/> (from <c>IHttpClientFactory</c>, a test handler…).</summary>
-    public TCGdex(HttpClient httpClient, TcgDexOptions? options = null)
+    /// <param name="httpClient">Sends the requests. Not disposed by the client.</param>
+    /// <param name="options">Endpoint, language and cache TTL; copied, so later changes do not affect the client.</param>
+    /// <param name="cache">
+    /// Where responses are cached (Redis, <c>AddDistributedMemoryCache</c>…). <c>null</c> gives the client
+    /// its own in-memory cache.
+    /// </param>
+    public TCGdex(HttpClient httpClient, TcgDexOptions? options = null, IDistributedCache? cache = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
 
         _http = httpClient;
+        _cache = cache ?? new InMemoryCache();
         _options = Validated(options?.Clone() ?? new TcgDexOptions());
 
-        Card = new(this, "cards", TcgDexJsonContext.Default.Card, TcgDexJsonContext.Default.ListCardResume);
-        Set = new(this, "sets", TcgDexJsonContext.Default.Set, TcgDexJsonContext.Default.ListSetResume);
-        Serie = new(this, "series", TcgDexJsonContext.Default.Serie, TcgDexJsonContext.Default.ListSerieResume);
+        var json = TcgDexJsonContext.Default;
+        Card = new(this, "cards", json.Card, json.ListCardResume);
+        Set = new(this, "sets", json.Set, json.ListSetResume);
+        Serie = new(this, "series", json.Serie, json.ListSerieResume);
         Random = new(this);
+
+        Types = new(this, "types", json.ListString);
+        Hp = new(this, "hp", json.ListInt32);
+        Illustrators = new(this, "illustrators", json.ListString);
+        Rarities = new(this, "rarities", json.ListString);
+        Categories = new(this, "categories", json.ListString);
+        EnergyTypes = new(this, "energy-types", json.ListString);
+        Retreats = new(this, "retreats", json.ListInt32);
+        Stages = new(this, "stages", json.ListString);
+        Suffixes = new(this, "suffixes", json.ListString);
+        TrainerTypes = new(this, "trainer-types", json.ListString);
+        DexIds = new(this, "dex-ids", json.ListInt32);
+        RegulationMarks = new(this, "regulation-marks", json.ListString);
+        Variants = new(this, "variants", json.ListString);
     }
 
     /// <summary>Cards.</summary>
@@ -66,11 +94,63 @@ public sealed class TCGdex
     /// <summary>Random card, set or serie.</summary>
     public RandomEndpoint Random { get; }
 
+    /// <summary>Pokémon types (<c>Fire</c>, <c>Water</c>…).</summary>
+    public CatalogEndpoint<string> Types { get; }
+
+    /// <summary>HP values.</summary>
+    public CatalogEndpoint<int> Hp { get; }
+
+    /// <summary>Illustrators.</summary>
+    public CatalogEndpoint<string> Illustrators { get; }
+
+    /// <summary>Rarities.</summary>
+    public CatalogEndpoint<string> Rarities { get; }
+
+    /// <summary>Card categories (<c>Pokemon</c>, <c>Trainer</c>, <c>Energy</c>).</summary>
+    public CatalogEndpoint<string> Categories { get; }
+
+    /// <summary>Energy card kinds (<c>Normal</c>, <c>Special</c>).</summary>
+    public CatalogEndpoint<string> EnergyTypes { get; }
+
+    /// <summary>Retreat costs.</summary>
+    public CatalogEndpoint<int> Retreats { get; }
+
+    /// <summary>Pokémon stages (<c>Basic</c>, <c>Stage1</c>…).</summary>
+    public CatalogEndpoint<string> Stages { get; }
+
+    /// <summary>Name suffixes (<c>EX</c>, <c>GX</c>, <c>V</c>…).</summary>
+    public CatalogEndpoint<string> Suffixes { get; }
+
+    /// <summary>Trainer card kinds (<c>Item</c>, <c>Supporter</c>…).</summary>
+    public CatalogEndpoint<string> TrainerTypes { get; }
+
+    /// <summary>National Pokédex numbers.</summary>
+    public CatalogEndpoint<int> DexIds { get; }
+
+    /// <summary>Regulation marks (<c>D</c>, <c>E</c>…).</summary>
+    public CatalogEndpoint<string> RegulationMarks { get; }
+
+    /// <summary>Printing kinds (<c>normal</c>, <c>holo</c>, <c>reverse</c>…).</summary>
+    public CatalogEndpoint<string> Variants { get; }
+
     /// <summary>Language of the returned data.</summary>
     public Language Language => _options.Language;
 
     /// <summary>API root.</summary>
     public string Endpoint => _options.Endpoint;
+
+    /// <summary>How long responses stay cached; <see cref="TimeSpan.Zero"/> means no cache.</summary>
+    public TimeSpan CacheTtl => _options.CacheTtl;
+
+    /// <summary>Changes how long the next responses stay cached. <see cref="TimeSpan.Zero"/> turns the cache off.</summary>
+    public void SetCacheTtl(TimeSpan ttl)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(ttl, TimeSpan.Zero);
+
+        var next = _options.Clone();
+        next.CacheTtl = ttl;
+        _options = Validated(next);
+    }
 
     /// <summary>
     /// Changes the language of the next requests. Requests are thread-safe; changing the language
@@ -102,7 +182,13 @@ public sealed class TCGdex
     internal async Task<T?> FetchAsync<T>(string[] path, Query? query, JsonTypeInfo<T> typeInfo, bool nullWhenNotFound, CancellationToken cancellationToken)
         where T : class
     {
-        var uri = new Uri(_options.BaseUri, string.Join('/', path.Select(EscapeSegment)) + query);
+        var options = _options;
+        var uri = new Uri(options.BaseUri, string.Join('/', path.Select(EscapeSegment)) + query);
+        var cacheKey = CacheKeyPrefix + uri.AbsoluteUri;
+        var caching = options.CacheTtl > TimeSpan.Zero;
+
+        if (caching && await ReadCacheAsync(cacheKey, cancellationToken).ConfigureAwait(false) is { } cached)
+            return Materialize(cached, typeInfo, null, uri);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -129,23 +215,61 @@ public sealed class TCGdex
                 response.StatusCode, uri);
         }
 
+        var body = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+        var result = Materialize(body, typeInfo, response.StatusCode, uri);
+
+        // The raw JSON is cached, not the object: every hit gets a fresh model, so a caller that
+        // mutates one does not change what the next caller sees. Only valid bodies get here.
+        if (caching)
+            await WriteCacheAsync(cacheKey, body, options.CacheTtl, cancellationToken).ConfigureAwait(false);
+
+        return result;
+    }
+
+    private T Materialize<T>(byte[] body, JsonTypeInfo<T> typeInfo, HttpStatusCode? status, Uri uri)
+        where T : class
+    {
         T? result;
         try
         {
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            await using (stream.ConfigureAwait(false))
-                result = await JsonSerializer.DeserializeAsync(stream, typeInfo, cancellationToken).ConfigureAwait(false);
+            result = JsonSerializer.Deserialize(body, typeInfo);
         }
         catch (JsonException ex)
         {
-            throw new TcgDexException("TCGdex API returned a body that is not the expected JSON.", response.StatusCode, uri, ex);
+            throw new TcgDexException("TCGdex API returned a body that is not the expected JSON.", status, uri, ex);
         }
 
         if (result is null)
-            throw new TcgDexException("TCGdex API returned an empty body.", response.StatusCode, uri);
+            throw new TcgDexException("TCGdex API returned an empty body.", status, uri);
 
         Attach(result);
         return result;
+    }
+
+    // A cache outage (Redis down…) must not stop requests: it only costs a trip to the API.
+    private async Task<byte[]?> ReadCacheAsync(string key, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    private async Task WriteCacheAsync(string key, byte[] body, TimeSpan ttl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _cache.SetAsync(key, body, new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl }, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Same as above: the response is already in hand.
+        }
     }
 
     private static string EscapeSegment(string segment)
@@ -190,6 +314,8 @@ public sealed class TCGdex
     private static TcgDexOptions Validated(TcgDexOptions options)
     {
         _ = options.BaseUri; // throws on an unusable endpoint now, not on the first request
+        if (options.CacheTtl < TimeSpan.Zero)
+            throw new InvalidOperationException("TcgDexOptions.CacheTtl cannot be negative.");
         return options;
     }
 
