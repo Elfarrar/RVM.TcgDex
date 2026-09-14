@@ -1,0 +1,29 @@
+# CLAUDE.md — RVM.TcgDex
+
+SDK C# da API [TCGdex](https://tcgdex.dev). Segundo produto do projeto **TradeBinder**; primeiro
+cliente dele é o próprio TradeBinder (pelo nuget.org, nunca por ProjectReference).
+
+Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deploy)
+
+## Onde está a spec e as tasks
+
+- **Spec:** `C:\IA\RVM.TradeBinder\11-sdk-rvm-tcgdex.md` (escopo 1.0, técnico, testes, listagem).
+- **Tasks:** prefixo **`TBIN-`**, cards em `C:\IA\RVM.TradeBinder\docs\Vault\02_Tasks\` — este repo
+  **não** tem Kanban próprio. Branch `tbin-NNN` a partir de `master`.
+
+## Regras que valem aqui
+
+- **Repo PÚBLICO, licença MIT.** Nada de credencial, URL interna, nome de VPS nem regra do
+  TradeBinder no código ou no histórico (sem coleção, sem BRL). O SDK tem que servir a qualquer um.
+- **CI próprio em `ubuntu-latest`, NÃO o `RVM.Actions`.** Repo público não chama reusable workflow
+  de repo privado — o run morre em 0 s, zero jobs, sem mensagem. Mesma decisão do
+  `RVM.DesignSystem` (ADR-011 de lá). Não "corrigir" para caller.
+- **Versão por TAG** (`v1.2.3` publica `1.2.3` no **nuget.org**), nunca literal no csproj.
+  Secret `NUGET_ORG_API_KEY` no repo.
+- **Não segue VSA/MediatR** — é biblioteca, não aplicação.
+- Alvos `net8.0` + `net10.0` (⏳ `netstandard2.0` = P8). Dependências só `Microsoft.Extensions.*`.
+- Código, XML doc e README em **inglês** (público internacional, listagem em `tcgdex.dev/sdks`).
+  Commit e card em português, como no resto do ecossistema.
+- Teste de contrato contra a API real **não** roda no CI de PR (não depender de rede de terceiro
+  para mergear) — agendado, e falha vira issue.
+- Cobertura ≥ 80% (portão no `ci.yml`).

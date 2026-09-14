@@ -1,0 +1,24 @@
+# Segredos — NUNCA versionar (repo PUBLICO)
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+docs/ACESSOS.md
+
+# Build .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+coverage-results/
+nupkgs/
+*.user
+
+# IDE / SO
+.vs/
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

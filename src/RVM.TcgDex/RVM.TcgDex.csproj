@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 (Unity, .NET Framework) ainda em aberto: P8 do 09-roadmap do TradeBinder. -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- A versao NAO mora aqui: o publish-nuget.yml passa -p:Version a partir da tag vX.Y.Z. -->
+  <PropertyGroup>
+    <PackageId>RVM.TcgDex</PackageId>
+    <Authors>Rafael Veneroso Morici</Authors>
+    <Description>C# SDK for the TCGdex API (Pokémon TCG): cards, sets, series, prices and images, in 18 languages.</Description>
+    <PackageProjectUrl>https://github.com/Elfarrar/RVM.TcgDex</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Elfarrar/RVM.TcgDex</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>tcgdex;pokemon;tcg;pokemon-tcg;sdk;api</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

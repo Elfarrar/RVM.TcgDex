@@ -1,0 +1,6 @@
+* text=auto
+
+# LF obrigatorio: \r quebra bash no runner Linux do GitHub Actions
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.sh    text eol=lf

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RVM.TcgDex/RVM.TcgDex.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/RVM.TcgDex.Tests/RVM.TcgDex.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,56 @@
+# Publica o RVM.TcgDex no nuget.org — SO por tag vX.Y.Z.
+#
+# A versao E a tag, e a tag aponta para o commit exato que gerou o pacote (regra do ecossistema
+# desde 08/09/2026). Nunca literal no csproj: senao a versao vira alvo movel.
+#
+# nuget.org nao aceita republicar a mesma versao — pacote publicado errado se corrige com versao
+# nova (e `unlist` da ruim), nunca sobrescrevendo.
+name: Publish NuGet
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tcgdex-nuget-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Pack + push (nuget.org)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+          global-json-file: global.json
+
+      - name: Versao a partir da tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+[.][0-9]+[.][0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::A tag '$GITHUB_REF_NAME' nao e vX.Y.Z (nem vX.Y.Z-sufixo)."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Test antes de publicar
+        run: dotnet test RVM.TcgDex.slnx -c Release
+
+      - name: Pack
+        run: dotnet pack src/RVM.TcgDex/RVM.TcgDex.csproj -c Release -o nupkgs -p:Version="$VERSION" -p:RepositoryCommit="$GITHUB_SHA"
+
+      - name: Push
+        env:
+          KEY: ${{ secrets.NUGET_ORG_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::NUGET_ORG_API_KEY ausente nos secrets do repositorio."
+            exit 1
+          fi
+          dotnet nuget push "nupkgs/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$KEY" --skip-duplicate
