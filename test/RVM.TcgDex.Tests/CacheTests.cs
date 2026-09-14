@@ -127,7 +127,7 @@ public sealed class CacheTests
 
         await tcgdex.Card.GetAsync("swsh3-136");
 
-        Assert.NotNull(await cache.GetAsync("https://api.tcgdex.net/v2/en/cards/swsh3-136"));
+        Assert.NotNull(await cache.GetAsync("rvm-tcgdex:https://api.tcgdex.net/v2/en/cards/swsh3-136"));
     }
 
     [Fact]

@@ -53,7 +53,7 @@ public sealed class DependencyInjectionTests
         await provider.GetRequiredService<TCGdex>().Card.GetAsync("swsh3-136");
 
         var cache = provider.GetRequiredService<IDistributedCache>();
-        Assert.NotNull(await cache.GetAsync("https://api.tcgdex.net/v2/en/cards/swsh3-136"));
+        Assert.NotNull(await cache.GetAsync("rvm-tcgdex:https://api.tcgdex.net/v2/en/cards/swsh3-136"));
     }
 
     [Fact]

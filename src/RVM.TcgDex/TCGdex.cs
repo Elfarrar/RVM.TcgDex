@@ -33,6 +33,9 @@ public sealed class TCGdex
 
     internal static readonly string UserAgent = BuildUserAgent();
 
+    // A shared IDistributedCache (Redis) holds other keys too: the prefix lets them be told apart and purged.
+    internal const string CacheKeyPrefix = "rvm-tcgdex:";
+
     private readonly HttpClient _http;
     private readonly IDistributedCache _cache;
     private TcgDexOptions _options;
@@ -181,7 +184,7 @@ public sealed class TCGdex
     {
         var options = _options;
         var uri = new Uri(options.BaseUri, string.Join('/', path.Select(EscapeSegment)) + query);
-        var cacheKey = uri.AbsoluteUri;
+        var cacheKey = CacheKeyPrefix + uri.AbsoluteUri;
         var caching = options.CacheTtl > TimeSpan.Zero;
 
         if (caching && await ReadCacheAsync(cacheKey, cancellationToken).ConfigureAwait(false) is { } cached)
