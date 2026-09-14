@@ -19,6 +19,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/Elfarrar/RVM.TcgDex/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageTags>tcgdex;pokemon;tcg;pokemon-tcg;sdk;api</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -26,6 +28,7 @@
 
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../assets/icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +39,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="RVM.TcgDex.Tests" />
+    <!-- O contrato compara o JSON ao vivo com o que os serializadores gerados conhecem. -->
+    <InternalsVisibleTo Include="RVM.TcgDex.ContractTests" />
   </ItemGroup>
 
 </Project>

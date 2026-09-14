@@ -3,6 +3,7 @@
     <Project Path="src/RVM.TcgDex/RVM.TcgDex.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/RVM.TcgDex.ContractTests/RVM.TcgDex.ContractTests.csproj" />
     <Project Path="test/RVM.TcgDex.Tests/RVM.TcgDex.Tests.csproj" />
   </Folder>
 </Solution>

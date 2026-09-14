@@ -40,7 +40,9 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Test antes de publicar
-        run: dotnet test RVM.TcgDex.slnx -c Release
+        # So o unitario: o projeto de contrato (tambem na solution) bate na API real, e publicar
+        # nao pode depender da rede da TCGdex. O contrato tem o contract.yml dele.
+        run: dotnet test test/RVM.TcgDex.Tests/RVM.TcgDex.Tests.csproj -c Release
 
       - name: Pack
         run: dotnet pack src/RVM.TcgDex/RVM.TcgDex.csproj -c Release -o nupkgs -p:Version="$VERSION" -p:RepositoryCommit="$GITHUB_SHA"
