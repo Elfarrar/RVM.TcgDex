@@ -44,11 +44,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          DETAILS=$(grep -E "TCGdex changed|does not expose|\[FAIL\]|Exception" contract.log | head -40 || true)
+          if [ -f contract.log ]; then
+            DETAILS=$(grep -E "TCGdex changed|does not expose|\[FAIL\]|Exception" contract.log | head -40 || true)
+          else
+            DETAILS="O job falhou ANTES dos testes (checkout/setup/restore) - problema de CI, provavelmente nao e mudanca da API."
+          fi
           BODY=$(printf 'O teste de contrato contra a API real falhou.\n\nRun: %s\n\n```\n%s\n```\n\nMudanca de campo: mapear no modelo (ou aceitar), depois `UPDATE_CONTRACT_BASELINE=1 dotnet test test/RVM.TcgDex.ContractTests` e revisar o diff do `contract-baseline.json`.' "$RUN_URL" "$DETAILS")
 
           gh label create contract --color B60205 --description "API TCGdex mudou" --force
-          OPEN=$(gh issue list --state open --label contract --json number --jq '.[0].number')
+          # `// empty`: sem issue aberta, algumas versoes do gh imprimem "null" (e ai comentaria na issue "null").
+          OPEN=$(gh issue list --state open --label contract --json number --jq '.[0].number // empty')
           if [ -n "$OPEN" ]; then
             gh issue comment "$OPEN" --body "$BODY"
           else
