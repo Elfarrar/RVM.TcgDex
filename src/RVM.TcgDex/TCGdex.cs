@@ -72,7 +72,10 @@ public sealed class TCGdex
     /// <summary>API root.</summary>
     public string Endpoint => _options.Endpoint;
 
-    /// <summary>Changes the language of the next requests.</summary>
+    /// <summary>
+    /// Changes the language of the next requests. Requests are thread-safe; changing the language
+    /// or the endpoint while other threads use the instance is not — use one instance per language.
+    /// </summary>
     public void SetLanguage(Language language)
     {
         var next = _options.Clone();
@@ -81,9 +84,12 @@ public sealed class TCGdex
     }
 
     /// <summary>Points the client at another TCGdex (self-hosted), e.g. <c>https://tcgdex.example.com/v2</c>.</summary>
+    /// <exception cref="ArgumentException"><paramref name="endpoint"/> is not an absolute URL.</exception>
     public void SetEndpoint(string endpoint)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(endpoint);
+        if (!Uri.TryCreate(endpoint.Trim(), UriKind.Absolute, out _))
+            throw new ArgumentException($"'{endpoint}' is not an absolute URL.", nameof(endpoint));
 
         var next = _options.Clone();
         next.Endpoint = endpoint;
@@ -96,7 +102,7 @@ public sealed class TCGdex
     internal async Task<T?> FetchAsync<T>(string[] path, Query? query, JsonTypeInfo<T> typeInfo, bool nullWhenNotFound, CancellationToken cancellationToken)
         where T : class
     {
-        var uri = new Uri(_options.BaseUri, string.Join('/', path.Select(segment => Uri.EscapeDataString(segment))) + query);
+        var uri = new Uri(_options.BaseUri, string.Join('/', path.Select(EscapeSegment)) + query);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.TryAddWithoutValidation("User-Agent", UserAgent);
@@ -140,6 +146,16 @@ public sealed class TCGdex
 
         Attach(result);
         return result;
+    }
+
+    private static string EscapeSegment(string segment)
+    {
+        // EscapeDataString keeps dots, and Uri resolves "." and ".." even when escaped: an id ".."
+        // would silently hit another endpoint (or leave /v2/{lang}/) instead of returning not found.
+        if (segment.Trim() is "." or "..")
+            throw new ArgumentException($"'{segment}' is not a valid TCGdex id.", nameof(segment));
+
+        return Uri.EscapeDataString(segment);
     }
 
     private void Attach(object result)

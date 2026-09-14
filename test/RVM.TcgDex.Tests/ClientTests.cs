@@ -109,6 +109,42 @@ public sealed class ClientTests
     }
 
     [Theory]
+    [InlineData("..")]
+    [InlineData(".")]
+    [InlineData(" .. ")]
+    public async Task DotSegmentIds_AreRejected_InsteadOfHittingAnotherEndpoint(string id)
+    {
+        // Uri resolves "cards/.." to the language root even after escaping — reviewer finding P1.
+        var api = new FakeApi().Returns("/v2/en/sets/swsh3", "set-swsh3.json");
+        var tcgdex = api.Client();
+        var set = (await tcgdex.Set.GetAsync("swsh3"))!;
+
+        await Assert.ThrowsAsync<ArgumentException>(() => tcgdex.Card.GetAsync(id));
+        await Assert.ThrowsAsync<ArgumentException>(() => set.GetCardAsync(id));
+        Assert.Single(api.Requests);
+    }
+
+    [Theory]
+    [InlineData("not a url")]
+    [InlineData("tcgdex.example.com/v2")]
+    public void SetEndpoint_RejectsNonAbsoluteUrl(string endpoint)
+    {
+        var tcgdex = new FakeApi().Client();
+
+        Assert.Throws<ArgumentException>(() => tcgdex.SetEndpoint(endpoint));
+        Assert.Equal(TcgDexOptions.DefaultEndpoint, tcgdex.Endpoint);
+    }
+
+    [Fact]
+    public void Options_WithNonAbsoluteEndpoint_FailAtConstruction()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => new TCGdex(new HttpClient(new FakeApi()), new TcgDexOptions { Endpoint = "not a url" }));
+
+        Assert.Contains("not an absolute URL", error.Message);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData(" ")]
     public async Task GetAsync_RejectsBlankId(string id)

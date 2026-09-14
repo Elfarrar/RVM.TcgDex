@@ -26,8 +26,10 @@ public sealed class TcgDexOptions
         {
             if (string.IsNullOrWhiteSpace(Endpoint))
                 throw new InvalidOperationException("TcgDexOptions.Endpoint must be set.");
+            if (!Uri.TryCreate($"{Endpoint.Trim().TrimEnd('/')}/{Language.ToCode()}/", UriKind.Absolute, out var uri))
+                throw new InvalidOperationException($"TcgDexOptions.Endpoint '{Endpoint}' is not an absolute URL.");
 
-            return new Uri($"{Endpoint.Trim().TrimEnd('/')}/{Language.ToCode()}/");
+            return uri;
         }
     }
 
