@@ -22,4 +22,9 @@
     <ProjectReference Include="..\..\src\RVM.TcgDex\RVM.TcgDex.csproj" />
   </ItemGroup>
 
+  <!-- Respostas reais da API gravadas em 13/09/2026 (swsh3-136, A1-001, dp1-121...). -->
+  <ItemGroup>
+    <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

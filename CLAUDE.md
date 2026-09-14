@@ -21,7 +21,14 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
 - **Versão por TAG** (`v1.2.3` publica `1.2.3` no **nuget.org**), nunca literal no csproj.
   Secret `NUGET_ORG_API_KEY` no repo.
 - **Não segue VSA/MediatR** — é biblioteca, não aplicação.
-- Alvos `net8.0` + `net10.0` (⏳ `netstandard2.0` = P8). Dependências só `Microsoft.Extensions.*`.
+- Alvos `net8.0` + `net10.0`, **sem `netstandard2.0`** (P8, decidido em 13/09). Dependências só
+  `Microsoft.Extensions.*`.
+- **A classe principal é `TCGdex`, não `TcgDex`** — igual aos SDKs oficiais, e porque um tipo com o
+  nome do último segmento do namespace (`RVM.TcgDex.TcgDex`) quebra a resolução de nome em quem
+  está num namespace `RVM.*` (o próprio TradeBinder): CS0118. Não "padronizar o casing".
+- **Modelos com `{ get; set; }`, não `init`** — o source generator do System.Text.Json põe
+  `default` (null) em toda propriedade `init` ausente no JSON, atropelando o inicializador. Teste
+  `PartialBody_KeepsNonNullableDefaults` segura isso.
 - Código, XML doc e README em **inglês** (público internacional, listagem em `tcgdex.dev/sdks`).
   Commit e card em português, como no resto do ecossistema.
 - Teste de contrato contra a API real **não** roda no CI de PR (não depender de rede de terceiro
