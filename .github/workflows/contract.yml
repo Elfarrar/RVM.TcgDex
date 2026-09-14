@@ -1,0 +1,56 @@
+# Contrato contra a API REAL da TCGdex — diario e manual, NUNCA no PR.
+#
+# O CI de PR nao depende de rede de terceiro para mergear (11-sdk-rvm-tcgdex.md § Testes); este
+# workflow e quem avisa que a TCGdex mudou. Falha -> issue com label `contract` (ou comentario na
+# que ja estiver aberta, para nao empilhar uma por dia).
+#
+# 503 "No available server" da TCGdex e queda, nao mudanca de contrato: o teste repete as chamadas
+# 5xx antes de falhar (RetryOnServerError).
+name: Contract
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: tcgdex-contract
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    name: Contract (API real)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Contract tests
+        run: |
+          set -o pipefail
+          dotnet test test/RVM.TcgDex.ContractTests/RVM.TcgDex.ContractTests.csproj -c Release \
+            --logger "console;verbosity=normal" 2>&1 | tee contract.log
+
+      - name: Issue na falha
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          DETAILS=$(grep -E "TCGdex changed|does not expose|\[FAIL\]|Exception" contract.log | head -40 || true)
+          BODY=$(printf 'O teste de contrato contra a API real falhou.\n\nRun: %s\n\n```\n%s\n```\n\nMudanca de campo: mapear no modelo (ou aceitar), depois `UPDATE_CONTRACT_BASELINE=1 dotnet test test/RVM.TcgDex.ContractTests` e revisar o diff do `contract-baseline.json`.' "$RUN_URL" "$DETAILS")
+
+          gh label create contract --color B60205 --description "API TCGdex mudou" --force
+          OPEN=$(gh issue list --state open --label contract --json number --jq '.[0].number')
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --body "$BODY"
+          else
+            gh issue create --title "Contrato com a API TCGdex falhou" --label contract --body "$BODY"
+          fi

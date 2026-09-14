@@ -32,5 +32,9 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
 - Código, XML doc e README em **inglês** (público internacional, listagem em `tcgdex.dev/sdks`).
   Commit e card em português, como no resto do ecossistema.
 - Teste de contrato contra a API real **não** roda no CI de PR (não depender de rede de terceiro
-  para mergear) — agendado, e falha vira issue.
+  para mergear) — agendado (`contract.yml`), e falha vira issue com label `contract`. O projeto
+  de contrato está na `.slnx`: por isso `ci.yml` e `publish-nuget.yml` testam **só**
+  `test/RVM.TcgDex.Tests` — `dotnet test` da solution faria a publicação depender da TCGdex.
+- Ensaio de pacote em feed local deixa o `rvm.tcgdex/<versão>` no cache do NuGet
+  (`~/.nuget/packages`) — apagar depois, senão ele se passa pelo do nuget.org na mesma versão.
 - Cobertura ≥ 80% (portão no `ci.yml`).
