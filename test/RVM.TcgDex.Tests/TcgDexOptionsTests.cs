@@ -11,8 +11,8 @@ public sealed class TcgDexOptionsTests
     [Fact]
     public void BaseUri_KeepsLanguageSegment_WhenResolvingRelativePath()
     {
-        // The reason for the trailing slash: without it, "cards/..." would replace "en".
-        var options = new TcgDexOptions { Language = "pt-br" };
+        // The reason for the trailing slash: without it, "cards/..." would replace "pt-br".
+        var options = new TcgDexOptions { Language = Language.PtBr };
 
         var card = new Uri(options.BaseUri, "cards/swsh3-136");
 
@@ -22,19 +22,20 @@ public sealed class TcgDexOptionsTests
     [Theory]
     [InlineData("https://tcgdex.example.com/v2/")]
     [InlineData("https://tcgdex.example.com/v2")]
+    [InlineData(" https://tcgdex.example.com/v2 ")]
     public void SelfHostedEndpoint_WithOrWithoutTrailingSlash(string endpoint)
     {
-        var options = new TcgDexOptions { Endpoint = endpoint, Language = " FR " };
+        var options = new TcgDexOptions { Endpoint = endpoint, Language = Language.Fr };
 
         Assert.Equal("https://tcgdex.example.com/v2/fr/", options.BaseUri.ToString());
     }
 
     [Theory]
-    [InlineData("", "en")]
-    [InlineData("https://api.tcgdex.net/v2", " ")]
-    public void MissingEndpointOrLanguage_Throws(string endpoint, string language)
+    [InlineData("")]
+    [InlineData(" ")]
+    public void MissingEndpoint_Throws(string endpoint)
     {
-        var options = new TcgDexOptions { Endpoint = endpoint, Language = language };
+        var options = new TcgDexOptions { Endpoint = endpoint };
 
         Assert.Throws<InvalidOperationException>(() => options.BaseUri);
     }

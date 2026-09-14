@@ -9,18 +9,15 @@ public sealed class TcgDexOptions
     /// <summary>Public TCGdex REST v2 API.</summary>
     public const string DefaultEndpoint = "https://api.tcgdex.net/v2";
 
-    /// <summary>Default language, as in the official SDKs.</summary>
-    public const string DefaultLanguage = "en";
-
     /// <summary>API root. Change it to point at a self-hosted TCGdex.</summary>
     public string Endpoint { get; set; } = DefaultEndpoint;
 
-    /// <summary>TCGdex language code (<c>en</c>, <c>fr</c>, <c>pt-br</c>...).</summary>
-    public string Language { get; set; } = DefaultLanguage;
+    /// <summary>Language of the returned data. English by default, as in the official SDKs.</summary>
+    public Language Language { get; set; } = Language.En;
 
     /// <summary>
-    /// Base address every request is relative to: <c>{Endpoint}/{Language}/</c>. The trailing slash
-    /// matters — without it, <see cref="Uri"/> drops the language segment when resolving
+    /// Base address every request is relative to: <c>{Endpoint}/{language code}/</c>. The trailing
+    /// slash matters — without it, <see cref="Uri"/> drops the language segment when resolving
     /// <c>cards/swsh3-136</c>.
     /// </summary>
     public Uri BaseUri
@@ -29,10 +26,10 @@ public sealed class TcgDexOptions
         {
             if (string.IsNullOrWhiteSpace(Endpoint))
                 throw new InvalidOperationException("TcgDexOptions.Endpoint must be set.");
-            if (string.IsNullOrWhiteSpace(Language))
-                throw new InvalidOperationException("TcgDexOptions.Language must be set.");
 
-            return new Uri($"{Endpoint.TrimEnd('/')}/{Language.Trim().ToLowerInvariant()}/");
+            return new Uri($"{Endpoint.Trim().TrimEnd('/')}/{Language.ToCode()}/");
         }
     }
+
+    internal TcgDexOptions Clone() => new() { Endpoint = Endpoint, Language = Language };
 }
