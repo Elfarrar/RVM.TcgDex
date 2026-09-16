@@ -2,7 +2,7 @@
 #
 # ⚠️ NAO e caller do RVM.Actions@v1, e o desvio e deliberado: repositorio PUBLICO nao consegue
 # chamar reusable workflow de repositorio PRIVADO (o run morre em 0s, zero jobs, sem mensagem).
-# Mesma decisao do RVM.DesignSystem (ADR-011 de la). De quebra, repo publico tem runner do GitHub
+# De quebra, repo publico tem runner do GitHub
 # de graca — sem runner self-hosted no BagEnd.
 name: CI
 
