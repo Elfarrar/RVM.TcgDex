@@ -16,8 +16,7 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
 - **Repo PÚBLICO, licença MIT.** Nada de credencial, URL interna, nome de VPS nem regra do
   TradeBinder no código ou no histórico (sem coleção, sem BRL). O SDK tem que servir a qualquer um.
 - **CI próprio em `ubuntu-latest`, NÃO o `RVM.Actions`.** Repo público não chama reusable workflow
-  de repo privado — o run morre em 0 s, zero jobs, sem mensagem. Mesma decisão do
-  `RVM.DesignSystem` (ADR-011 de lá). Não "corrigir" para caller.
+  de repo privado — o run morre em 0 s, zero jobs, sem mensagem. Não "corrigir" para caller.
 - **Versão por TAG** (`v1.2.3` publica `1.2.3` no **nuget.org**), nunca literal no csproj.
   Secret `NUGET_ORG_API_KEY` no repo.
 - **Não segue VSA/MediatR** — é biblioteca, não aplicação.
