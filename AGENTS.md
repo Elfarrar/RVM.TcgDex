@@ -1,4 +1,4 @@
-# CLAUDE.md — RVM.TcgDex
+# AGENTS.md — RVM.TcgDex
 
 SDK C# da API [TCGdex](https://tcgdex.dev). Segundo produto do projeto **TradeBinder**; primeiro
 cliente dele é o próprio TradeBinder (pelo nuget.org, nunca por ProjectReference).
@@ -7,8 +7,8 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
 
 ## Onde está a spec e as tasks
 
-- **Spec:** `C:\IA\RVM.TradeBinder\11-sdk-rvm-tcgdex.md` (escopo 1.0, técnico, testes, listagem).
-- **Tasks:** prefixo **`TBIN-`**, cards em `C:\IA\RVM.TradeBinder\docs\Vault\02_Tasks\` — este repo
+- **Spec:** `~/ia/RVM.TradeBinder/11-sdk-rvm-tcgdex.md` (escopo 1.0, técnico, testes, listagem).
+- **Tasks:** prefixo **`TBIN-`**, cards em `~/ia/RVM.TradeBinder/docs/Vault/02_Tasks/` — este repo
   **não** tem Kanban próprio. Branch `tbin-NNN` a partir de `master`.
 
 ## Regras que valem aqui
