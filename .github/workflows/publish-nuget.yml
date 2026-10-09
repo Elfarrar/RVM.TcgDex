@@ -5,6 +5,10 @@
 #
 # nuget.org nao aceita republicar a mesma versao — pacote publicado errado se corrige com versao
 # nova (e `unlist` da ruim), nunca sobrescrevendo.
+#
+# Credencial: Trusted Publishing (OIDC) desde 08/10/2026 — politica "RVM.TcgDex" no nuget.org do
+# `rvenerosomorici` (repo Elfarrar/RVM.TcgDex, workflow publish-nuget.yml, sem environment). O NuGet/login
+# troca o token do GitHub por uma chave temporaria a cada run: nenhuma API key guardada, nada expira.
 name: Publish NuGet
 
 on:
@@ -13,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # Trusted Publishing: o token OIDC que o nuget.org troca pela chave temporaria
 
 concurrency:
   group: tcgdex-nuget-${{ github.ref }}
@@ -47,12 +52,25 @@ jobs:
       - name: Pack
         run: dotnet pack src/RVM.TcgDex/RVM.TcgDex.csproj -c Release -o nupkgs -p:Version="$VERSION" -p:RepositoryCommit="$GITHUB_SHA"
 
+      - name: Login no nuget.org (Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: rvenerosomorici
+
       - name: Push
         env:
-          KEY: ${{ secrets.NUGET_ORG_API_KEY }}
+          KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "nupkgs/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$KEY" --skip-duplicate
+
+      - name: Conferir no feed
+        # --skip-duplicate sai com sucesso sem publicar: so vale se a versao aparecer no nuget.org.
+        # A indexacao leva alguns minutos.
         run: |
-          if [ -z "$KEY" ]; then
-            echo "::error::NUGET_ORG_API_KEY ausente nos secrets do repositorio."
-            exit 1
-          fi
-          dotnet nuget push "nupkgs/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key "$KEY" --skip-duplicate
+          for i in $(seq 1 30); do
+            if curl -fsS https://api.nuget.org/v3-flatcontainer/rvm.tcgdex/index.json | grep -q "\"$VERSION\""; then
+              echo "RVM.TcgDex $VERSION no nuget.org (tentativa $i)"; exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::RVM.TcgDex $VERSION nao apareceu no nuget.org em 10 min."; exit 1
