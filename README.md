@@ -2,6 +2,10 @@
 
 <img src="https://raw.githubusercontent.com/Elfarrar/RVM.TcgDex/master/assets/icon.png" alt="" width="64" align="right">
 
+[![NuGet](https://img.shields.io/nuget/v/RVM.TcgDex)](https://www.nuget.org/packages/RVM.TcgDex)
+[![CI](https://github.com/Elfarrar/RVM.TcgDex/actions/workflows/ci.yml/badge.svg)](https://github.com/Elfarrar/RVM.TcgDex/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/Elfarrar/RVM.TcgDex)](https://github.com/Elfarrar/RVM.TcgDex/blob/master/LICENSE)
+
 C# SDK for the [TCGdex](https://tcgdex.dev) API — Pokémon TCG cards, sets, series, market prices
 and images, in 18 languages. The API is free and needs no key.
 
@@ -19,6 +23,8 @@ already know this one.
 ```
 dotnet add package RVM.TcgDex
 ```
+
+Package on [nuget.org](https://www.nuget.org/packages/RVM.TcgDex). Requires .NET 8 or later.
 
 ## Quick start
 
@@ -182,11 +188,11 @@ object. With `AddTcgDex`, an `IDistributedCache` registered in the container is 
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+See [CONTRIBUTING.md](https://github.com/Elfarrar/RVM.TcgDex/blob/master/CONTRIBUTING.md). Changes are listed in [CHANGELOG.md](https://github.com/Elfarrar/RVM.TcgDex/blob/master/CHANGELOG.md).
 
 ## License and credits
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/Elfarrar/RVM.TcgDex/blob/master/LICENSE).
 
 Card data, images and prices come from [TCGdex](https://tcgdex.dev). This is an independent,
 community SDK, not affiliated with TCGdex. Pokémon and its trademarks are © Nintendo, Creatures
