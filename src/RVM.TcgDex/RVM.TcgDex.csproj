@@ -20,7 +20,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageReleaseNotes>https://github.com/Elfarrar/RVM.TcgDex/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/Elfarrar/RVM.TcgDex/blob/prd/CHANGELOG.md</PackageReleaseNotes>
     <PackageTags>tcgdex;pokemon;tcg;pokemon-tcg;sdk;api</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
