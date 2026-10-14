@@ -1,6 +1,6 @@
 # RVM.TcgDex
 
-<img src="https://raw.githubusercontent.com/Elfarrar/RVM.TcgDex/master/assets/icon.png" alt="" width="64" align="right">
+<img src="https://raw.githubusercontent.com/Elfarrar/RVM.TcgDex/prd/assets/icon.png" alt="" width="64" align="right">
 
 [![NuGet](https://img.shields.io/nuget/v/RVM.TcgDex)](https://www.nuget.org/packages/RVM.TcgDex)
 [![CI](https://github.com/Elfarrar/RVM.TcgDex/actions/workflows/ci.yml/badge.svg)](https://github.com/Elfarrar/RVM.TcgDex/actions/workflows/ci.yml)

@@ -24,6 +24,8 @@ concurrency:
 jobs:
   contract:
     name: Contract (API real)
+    # Fica no GitHub (publico): abre issue la com o gh. Na forja nao roda.
+    if: github.server_url == 'https://github.com'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

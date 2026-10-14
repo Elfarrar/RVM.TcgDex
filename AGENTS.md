@@ -9,7 +9,10 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
 
 - **Spec:** `~/ia/RVM.TradeBinder/11-sdk-rvm-tcgdex.md` (escopo 1.0, técnico, testes, listagem).
 - **Tasks:** prefixo **`TBIN-`**, cards em `~/ia/RVM.TradeBinder/docs/Vault/02_Tasks/` — este repo
-  **não** tem Kanban próprio. Branch `tbin-NNN` a partir de `master`.
+  **não** tem Kanban próprio. Branch `tbin-NNN` a partir de `prd`.
+- **Repo na forja** (`forja:Elfarrar/RVM.TcgDex.git`) desde 14/10/2026: CI roda lá. O GitHub público
+  `Elfarrar/RVM.TcgDex` recebe a `prd` e as tags `v*` pelo espelho (`/opt/espelhar-prd.sh`, 15 min) e só
+  publica no nuget.org e roda o contrato diário. Nada se empurra lá direto.
 
 ## Regras que valem aqui
 
@@ -17,7 +20,8 @@ Porte: aplicacao (biblioteca publicada — não tem VPS, Docker, banco nem deplo
   TradeBinder no código ou no histórico (sem coleção, sem BRL). O SDK tem que servir a qualquer um.
 - **CI próprio em `ubuntu-latest`, NÃO o `RVM.Actions`.** Repo público não chama reusable workflow
   de repo privado — o run morre em 0 s, zero jobs, sem mensagem. Não "corrigir" para caller.
-- **Versão por TAG** (`v1.2.3` publica `1.2.3` no **nuget.org**), nunca literal no csproj.
+- **Versão por TAG** (`v1.2.3` publica `1.2.3` no **nuget.org**), nunca literal no csproj. A tag é criada na
+  forja; o espelho a leva ao GitHub, onde o `publish-nuget.yml` roda.
   Credencial por **Trusted Publishing** (OIDC, 08/10/2026): política `RVM.TcgDex` no nuget.org do `rvenerosomorici`
   para `Elfarrar/RVM.TcgDex` + `publish-nuget.yml`. Sem API key guardada (o `NUGET_ORG_API_KEY` deixou de existir).
 - **Não segue VSA/MediatR** — é biblioteca, não aplicação.
